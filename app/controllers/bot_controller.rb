@@ -1,4 +1,6 @@
 class BotController < ApplicationController
+  skip_before_action  :verify_authenticity_token
+
   def webhook
     if params['hub.verify_token'] == "huydang_nicachenchalaca"
       render plain: params['hub.challenge'] and return
@@ -8,9 +10,15 @@ class BotController < ApplicationController
   end
 
   def receive_message
-    debug(params)
+    if params[:entry]
+      messaging_events = params[:entry][0][:messaging]
+      messaging_events.each do |event|
+        sender = event[:sender][:id]
+        if (text = event[:message] && event[:message][:text])
+          BotHelper.send_text_message(sender, "Hi there! You said: #{text}. The Bots")
+        end
+      end
+    end
+    render body: nil
   end
 end
-
-# Page Access Token
-# EAAWZCXBOxp7gBAD1yQO6NAHRgGWEwMDjXSOx3eubUqFsY6uDtUiz1f7cAgje7QTqbJ8tCq1VzVjGHVUpqkxqSsJs0DurCVqsZCYxkGTTXavGOOdc3CRkZBY4blwsI4cTtCjCoRrPYYbj9094E3YFWEtYiiZC582OqrbC3BebmQZDZD
